@@ -776,8 +776,7 @@ static int raizn_zone_mgr_execute(struct raizn_stripe_head *sh)
 		default:
 			// Empty, closed, imp and exp open all perform check to see if zone is now full
 			if (sh->status == RAIZN_IO_COMPLETED) {
-				lzone->wp = max(lzone->wp,
-						bio_end_sector(sh->orig_bio));
+				lzone->wp = += bio_sectors(sh->orig_bio);
 			} else if (lzone->wp >
 				   sh->orig_bio->bi_iter.bi_sector) {
 				pr_err("Cannot execute op %d to address %lld < wp %lld\n",
@@ -1706,23 +1705,11 @@ submit:
 		if (subio->sub_io_type == RAIZN_SUBIO_DATA) {
 			int count = 0;
 			while (subio->zone->wp <
-				       subio->bio->bi_iter.bi_sector &&
-			       ++count < 10000) {
+				       subio->bio->bi_iter.bi_sector) {
 				udelay(2);
-				if (count > 1000 && count % 1000 == 0) {
-					pr_err("Unusual delay count = %d, %lld != %lld\n",
-					       count, subio->zone->wp,
-					       subio->bio->bi_iter.bi_sector);
-				}
 			}
-			if (subio->zone->wp != subio->bio->bi_iter.bi_sector) {
-				pr_err("Unexpected mismatch between wp and write sector on device %d: %lld != %lld\n",
-				       subio->zone->dev->idx, subio->zone->wp,
-				       subio->bio->bi_iter.bi_sector);
-			}
-			subio->dbg = bio_sectors(subio->bio);
 			submit_bio_noacct(subio->bio);
-			zone->wp = max(zone->wp, bio_end_sector(subio->bio));
+			zone->wp = += bio_sectors(subio->bio);
 		}
 	}
 	/*if (op_is_flush(bio_op(sh->orig_bio))) {

@@ -2221,13 +2221,14 @@ static int raizn_report_zones(struct dm_target *ti,
 			      unsigned int nr_zones)
 {
 	struct raizn_ctx *ctx = ti->private;
-	struct raizn_zone *zone = &ctx->zone_mgr.lzones[args->zone_idx];
+	int zoneno = args->next_sector >> ctx->params->lzone_shift;
+	struct raizn_zone *zone = &ctx->zone_mgr.lzones[zoneno];
 	struct blk_zone report;
-	if (!nr_zones || args->zone_idx > ctx->params->num_zones) {
+	if (!nr_zones || zoneno > ctx->params->num_zones) {
 		return args->zone_idx;
 	}
 	mutex_lock(&zone->lock);
-	report.start = args->zone_idx * ctx->params->lzone_size_sectors;
+	report.start = zone->start;
 	report.len = ctx->params->lzone_size_sectors;
 	report.wp = zone->wp;
 	report.type = BLK_ZONE_TYPE_SEQWRITE_REQ;
@@ -2236,6 +2237,7 @@ static int raizn_report_zones(struct dm_target *ti,
 	report.reset = 0;
 	report.capacity = ctx->params->lzone_capacity_sectors;
 	mutex_unlock(&zone->lock);
+	args->start = report.start;
 	args->next_sector += ctx->params->lzone_size_sectors;
 	return args->orig_cb(&report, args->zone_idx++, args->orig_data);
 }

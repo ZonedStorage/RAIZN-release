@@ -1,0 +1,18 @@
+diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
+index 2111daaacaba..d02affcd15c7 100644
+--- a/drivers/md/dm-table.c
++++ b/drivers/md/dm-table.c
+@@ -1635,11 +1635,11 @@ static int validate_hardware_zoned_model(struct dm_table *table,
+ 	if (!zone_sectors || !is_power_of_2(zone_sectors))
+ 		return -EINVAL;
+ 
+-	if (dm_table_any_dev_attr(table, device_not_matches_zone_sectors, &zone_sectors)) {
++	/*if (dm_table_any_dev_attr(table, device_not_matches_zone_sectors, &zone_sectors)) {
+ 		DMERR("%s: zone sectors is not consistent across all zoned devices",
+ 		      dm_device_name(table->md));
+ 		return -EINVAL;
+-	}
++	}*/
+ 
+ 	return 0;
+ }

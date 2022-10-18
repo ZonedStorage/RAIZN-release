@@ -776,7 +776,7 @@ static int raizn_zone_mgr_execute(struct raizn_stripe_head *sh)
 		default:
 			// Empty, closed, imp and exp open all perform check to see if zone is now full
 			if (sh->status == RAIZN_IO_COMPLETED) {
-				lzone->wp = += bio_sectors(sh->orig_bio);
+				lzone->wp += bio_sectors(sh->orig_bio);
 			} else if (lzone->wp >
 				   sh->orig_bio->bi_iter.bi_sector) {
 				pr_err("Cannot execute op %d to address %lld < wp %lld\n",
@@ -1703,13 +1703,12 @@ submit:
 		struct raizn_sub_io *subio = sh->sub_ios[subio_idx];
 		struct raizn_zone *zone = subio->zone;
 		if (subio->sub_io_type == RAIZN_SUBIO_DATA) {
-			int count = 0;
 			while (subio->zone->wp <
 				       subio->bio->bi_iter.bi_sector) {
 				udelay(2);
 			}
 			submit_bio_noacct(subio->bio);
-			zone->wp = += bio_sectors(subio->bio);
+			zone->wp += bio_sectors(subio->bio);
 		}
 	}
 	/*if (op_is_flush(bio_op(sh->orig_bio))) {
